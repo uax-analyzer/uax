@@ -13,7 +13,7 @@
     "baconjs": "^3.0.17",
     "commander": "^11.0.0",
     "lodash": "^4.17.21",
-    "piscina": "^4.0.0",
+    "piscina": "^4.1.0",
     "rxjs": "^7.8.1",
     "ts-morph": "^19.0.0",
     "type-plus": "^7.6.0",

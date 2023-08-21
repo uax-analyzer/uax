@@ -5,7 +5,6 @@ import { Node } from "ts-morph";
 import processConfigFile from './lib/configProcessing.js';
 
 import { computeAMNOI, computeAPXI } from "./lib/metrics/structural/index.js";
-import { getYoutubeLikeToDisplay } from './lib/metrics/structural/util.js';
 
 const program = new Command();
 
@@ -25,12 +24,13 @@ let projects = await processConfigFile(configFilePath);
 
 const mainFile = projects.sourceFiles;
 
-let modules = new Map();
+const modules = new Map();
 let modulePath, declarationsMap;
 for (const [name, declarations] of mainFile[0].getExportedDeclarations()) {
   declarations.forEach(declaration => {
     if (Node.isClassDeclaration(declaration) || Node.isFunctionDeclaration(declaration)) {
-      modulePath = path.relative(projects.tsConfigFilePath, declaration.getSourceFile().getFilePath());
+      //modulePath = path.relative(projects.tsConfigFilePath, declaration.getSourceFile().getFilePath());
+      modulePath = declaration.getSourceFile().getFilePath();
 
       if (!modules.has(modulePath)) {
         modules.set(modulePath, new Map());
@@ -41,12 +41,11 @@ for (const [name, declarations] of mainFile[0].getExportedDeclarations()) {
         declarationsMap.set(name, []);
       }
       let decs = declarationsMap.get(name);
-      decs.push(declaration);
 
+      decs.push(declaration.getStructure());
     }
   });
 }
-
 
 let res = await Promise.all([computeAMNOI(modules), computeAPXI(modules)]);
 console.log(res[0].index, res[1].index);
