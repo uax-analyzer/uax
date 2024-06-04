@@ -11,34 +11,35 @@ import { merge } from 'rxjs';
 import processConfigFile from './lib/configProcessing.js';
 import createManager from './lib/metrics/structural/manager.js';
 
-const OUTPUT_DIR = './output/';
-// Cleans the output folder and recreate it
-if (fs.existsSync(OUTPUT_DIR)) {
-  fs.rmdirSync(OUTPUT_DIR, { recursive: true });
-}
-fs.mkdirSync(OUTPUT_DIR);
-
 const program = new Command();
 
 program
-  .requiredOption('-p, --path <dir>', 'the path pointing to configuration files')
+  .requiredOption('-c, --config-path <dir>', 'the path pointing to configuration files')
+  .option('-o, --output-path <dir>', 'the path where the output files are written', './output/')
   .parse();
 
-const configFilePath = program.opts().path;
+const configFilePath = program.opts().configPath;
 if (path.extname(configFilePath) != ".json") {
   throw new Error("Configuration file must be a JSON file!");
 }
 
+const outputPath = program.opts().outputPath;
+// creates folder if it does not exist
+if (!fs.existsSync(outputPath)) {
+  fs.mkdirSync(outputPath);
+}
+
 const projects = await processConfigFile(configFilePath);
 
-const managers = projects.map(project => createManager(project));
+const managers = projects.map(project => createManager(project, ['amnoi']));
 
 //install all projects' dependencies
 console.log("Installing projects' dependencies...")
-for (let manager of managers) {
+for (const manager of managers) {
   try {
     await execP(`cd ${manager.projectConfig.basePath} && npm install`);
-  } catch (e) { }
+  } catch (e) { } //empty catch since some project were presenting misterious exceptions
+  // install type-plus as a dependency for the target project
   let { error } = await execP(`cd ${manager.projectConfig.basePath} && npm install type-plus`);
   if (error) {
     console.error(error);
@@ -46,11 +47,12 @@ for (let manager of managers) {
   }
 }
 
-console.log("Initializing metrics processing...")
+console.log("Dependencies installed!\nInitializing metrics processing...");
+
 merge(...managers.map(manager => manager.computeMetricsAsObservable()))
   .subscribe({
     next: data => {
-      fs.writeFile(path.join(OUTPUT_DIR, `${data.projectName + ' - ' + data.metric}.json`),
+      fs.writeFile(path.join(outputPath, `${data.projectName + ' - ' + data.metricName}.json`),
         JSON.stringify(data), 'utf8', (err) => {
           if (err) {
             console.error(err);
@@ -59,5 +61,5 @@ merge(...managers.map(manager => manager.computeMetricsAsObservable()))
         })
     },
     error: err => console.error("An error happened during the processing:\n" + err),
-    complete: _ => console.log("Operation completed successfully!\nResults available at:" + OUTPUT_DIR)
+    complete: _ => console.log("Operation completed successfully!\nResults available at:" + outputPath)
   });
