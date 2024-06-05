@@ -59,4 +59,4 @@ For every metric, the tool generates a JSON following this name pattern "_**name
 
 ## Acknowledge
 The implemented metrics are based the following paper:
-** _Rama, G. M., & Kak, A. (2015). Some structural measures of API usability. Software: Practice and Experience, 45(1), 75-110._
+* _Rama, G. M., & Kak, A. (2015). Some structural measures of API usability. Software: Practice and Experience, 45(1), 75-110._
