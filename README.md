@@ -8,17 +8,18 @@ UAX.js is a tool built to implement and provide easy access to API usability met
 ## Installing dependencies
 The repository is going to be uploaded at NPM; until then, just `$ git clone` the repository and run, within the tool's root folder, the following command in the terminal, before actually running the tool, to install all the dependencies:
 
-```sh
+```console
 $ npm install
 ```
 
 ## Running
 
-```sh
-$ node uax --config-path <dir> [--output-path <dir>]
+```console
+$ node --max-old-space-size=4096 uax --config-path <dir> [--output-path <dir>]
 ```
 where:
 
+* max-old-space-size: A Node.js flag to increase heap memory. 4 GB has shown to be enough for 3 APIs being tested at the same time (execution).
 * config-path (short version `-c`): is a path to a configuration JSON.
 * output-path (short version `-o`): is an optional parameter indicating a path to an output directory. The defaults is `./output/`.
 
